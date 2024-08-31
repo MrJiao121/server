@@ -190,7 +190,7 @@ router.get("/search", async (req, res) => {
 
 router.post("/getPoems", async (req, res) => {
   console.log(req.body, "dd");
-  let { size = 10 } = req.query;
+  let { size = 10 } = req.body;
   console.log(typeof size);
   let { group, subGroup } = req.body;
   console.log(size, group, subGroup);
