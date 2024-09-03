@@ -39,6 +39,7 @@ const PoemsSchema = mongoose.Schema(
     ],
     judgementQuestions: [String],
     judgementAnsList: [Boolean],
+    audioUrl: String,
 
     multipleChoiceQuestions: [
         MultipleChoiceQuestions

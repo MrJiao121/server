@@ -116,7 +116,8 @@ router.get("/getPoemDetail", async (req, res) => {
     poem,
     subGroup,
     title,
-	_id
+	_id,
+	audioUrl
   } = data;
 
   console.log(data, "dddd");
@@ -130,6 +131,7 @@ router.get("/getPoemDetail", async (req, res) => {
     createdAt,
     judgementAnsList,
     judgementQuestions,
+	audioUrl,
 
     updatedAt,
     lines,
