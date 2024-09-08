@@ -9,6 +9,51 @@ const User = require("../models/user");
 const JWT = require("../utils/JWT");
 console.log(Item, "poems");
 
+
+const multer = require("multer");
+const OSS = require("ali-oss");
+
+// const uuid = require("uuid");
+
+const accessKeyId = "LTAI5tL3sKdgVSYg93kJhhqz";
+const accessKeySecret = "7Kf84Z02AMc9sHhvmXMsn8349uv0bU";
+const endpoint = "http://oss-cn-shanghai.aliyuncs.com";
+const bucketName = "poems-resource";
+const OSSregion =  "oss-cn-shanghai";
+
+const client = new OSS({
+  accessKeyId,
+  accessKeySecret,
+  region: "oss-cn-shanghai",
+  bucket: bucketName,
+  authorizationV4: true,
+//   endpoint,
+});
+
+
+// 使用内存存储引擎，文件数据将保存在内存中的 Buffer 对象
+// const upload = multer({ storage: multer.memoryStorage() });
+const upload = multer({ dest: 'uploads/' });
+
+router.post('/uploadImage',upload.single('file'),async (req,res)=> {
+	console.log(req.file,'ffffile')
+	try {
+		let fileName = req.file.originalname
+	let userId = req.user_id;
+	fileName = `upload/${userId}/${fileName}`;
+		const result = await client.put(fileName,req.file.path);
+		 res.send({  
+      message: '文件上传成功',  
+      data: result  
+    });  
+	}catch (error) {  
+    res.status(500).send({  
+      message: '文件上传失败',  
+      error: error.message  
+    });  
+  }  
+})
+
 const exchangeCodeForAccessToken = async ({ code, appid, app_secret }) => {
   const url = `https://api.weixin.qq.com/sns/jscode2session?appid=${appid}&secret=${app_secret}&js_code=${code}&grant_type=authorization_code`;
 
@@ -107,6 +152,34 @@ router.get("/checkLogin", (req, res) => {
   // https://api.weixin.qq.com/wxa/checksession?access_token=ACCESS_TOKEN&signature=SIGNATURE&openid=OPENID&sig_method=SIG_METHOD
 });
 
+// 更新用户信息
+router.post("/updateProfile", async (req, res) => {
+  try {
+    let {avatorUrl,nickName} = req.body;
+	let userId = req.user_id;
+	let data = await User.findById(userId);
+	avatorUrl && (data.avatarUrl = avatorUrl);
+	nickName && (data.nickname = nickName)
+	console.log(data,'save')
+	await data.save();
+	console.log(data,'ddd')
+ 
+    res.send({
+      status: 200,
+      message: "修改成功!",
+      data: {
+        avatorUrl,
+		nickName
+      },
+    });
+  } catch (err) {
+	console.log(err,'eee')
+	 res.send({ status: 1001, message: '登录失败', data: err });
+   
+  }
+
+});
+
 
 //添加关注
 router.get('/addFollow',async (req,res)=>{
@@ -141,6 +214,7 @@ router.get('/followList',async (req,res)=>{
 	let data = await User.findById(userA);
 	let followers = data.followers;
 	let following = data.following;
+	await data.save();
 	 res.send({ status: 200, message: 'success', data: {
 		followers,
 		following

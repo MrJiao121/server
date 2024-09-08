@@ -8,7 +8,12 @@ const commentSchema = new mongoose.Schema({
 		{
 			content: String,
 			author: String,
-			imgUrl: String
+			imgUrl: String,
+			nickname: String,
+			authorId: String,
+			authoAvator: String
+
+
 
 		}
 

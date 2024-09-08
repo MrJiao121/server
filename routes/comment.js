@@ -5,10 +5,11 @@ const axios = require("axios");
 const router = express.Router();
 const userFavorite = require("../models/userFavorite");
 const Comment = require("../models/comment");
-const post = require("../models/postPoem")
+const post = require("../models/postPoem");
+const User = require('../models/user');
 router.get("/addComment", async (req, res) => {
   console.log(req.body, "collectPoem");
-  let {content = '测试一下',id=''} = req.query
+  let {content = '测试一下',id='',imgUrl} = req.query
 
 	let userId = req.user_id;
   //古诗id
@@ -17,11 +18,14 @@ router.get("/addComment", async (req, res) => {
   if(id){
 	//添加二级评论
 	let findContent = await Comment.findById(id);
+	let user = await User.findById(userId);
 	if(findContent){
 		 const newReply = {
         content: content,
-        author: "小新",
-        imgUrl: userId
+        nickname:user.nickname,
+		authorId:userId,
+		authoAvator: user.avatarUrl,
+        imgUrl: imgUrl
       };
 	  findContent.replies.push(newReply)
 	   await findContent.save();

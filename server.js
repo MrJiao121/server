@@ -6,6 +6,7 @@ const poems = require('./routes/poems')
 const user = require('./routes/user');
 const comment = require('./routes/comment');
 const bodyParser = require("body-parser");
+const  OSS =require("./routes/oss")
  
 const JWT = require("./utils/JWT");
  
@@ -49,7 +50,7 @@ const PORT = process.env.PORT || 3000;
 
 
 
-
+app.use('/upload', OSS);
 
 app.use('/api',comment)
 app.use('/api',user)
