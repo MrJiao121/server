@@ -6,8 +6,8 @@ const OSS = require("ali-oss");
 
 // const uuid = require("uuid");
 
-const accessKeyId = "LTAI5tL3sKdgVSYg93kJhhqz";
-const accessKeySecret = "7Kf84Z02AMc9sHhvmXMsn8349uv0bU";
+const accessKeyId = "" //"LTAI5tL3sKdgVSYg93kJhhqz";
+const accessKeySecret ="" // "7Kf84Z02AMc9sHhvmXMsn8349uv0bU";
 const endpoint = "http://oss-cn-shanghai.aliyuncs.com";
 const bucketName = "poems-resource";
 const OSSregion =  "oss-cn-shanghai";
