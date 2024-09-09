@@ -15,20 +15,20 @@ const OSS = require("ali-oss");
 
 // const uuid = require("uuid");
 
-const accessKeyId = "" //"LTAI5tL3sKdgVSYg93kJhhqz";
-const accessKeySecret = "" //"7Kf84Z02AMc9sHhvmXMsn8349uv0bU";
+const accessKeyId = "" //;
+const accessKeySecret = "" //"";
 const endpoint = "http://oss-cn-shanghai.aliyuncs.com";
 const bucketName = "poems-resource";
 const OSSregion =  "oss-cn-shanghai";
 
-const client = new OSS({
+/* const client = new OSS({
   accessKeyId,
   accessKeySecret,
   region: "oss-cn-shanghai",
   bucket: bucketName,
   authorizationV4: true,
 //   endpoint,
-});
+}); */
 
 
 // 使用内存存储引擎，文件数据将保存在内存中的 Buffer 对象

@@ -6,50 +6,71 @@ const OSS = require("ali-oss");
 
 // const uuid = require("uuid");
 
-const accessKeyId = "" //"LTAI5tL3sKdgVSYg93kJhhqz";
-const accessKeySecret ="" // "7Kf84Z02AMc9sHhvmXMsn8349uv0bU";
+
 const endpoint = "http://oss-cn-shanghai.aliyuncs.com";
 const bucketName = "poems-resource";
 const OSSregion =  "oss-cn-shanghai";
 
-const client = new OSS({
+/* const client = new OSS({
   accessKeyId,
   accessKeySecret,
   region: "oss-cn-shanghai",
   bucket: bucketName,
   authorizationV4: true,
 //   endpoint,
-});
-
-
-
-
-/* try {
-  const putObjectResult = await store.put(bucketName, 'tuxiang', {
-    headers: {
-      // The headers of this request
-      header1: 'value1',
-      header2: 'value2'
-    },
-    // The keys of the request headers that need to be calculated into the V4 signature. Please ensure that these additional headers are included in the request headers.
-    additionalHeaders: ['additional header1', 'additional header2']
-  });
-  console.log(putObjectResult);
-} catch (e) {
-  console.log(e);
-} */
-
-
-/* const client = new OSS({
-  // 从环境变量中获取访问凭证。运行本代码示例之前，请确保已设置环境变量OSS_ACCESS_KEY_ID和OSS_ACCESS_KEY_SECRET。
-  accessKeyId: process.env.OSS_ACCESS_KEY_ID,
-  accessKeySecret: process.env.OSS_ACCESS_KEY_SECRET,
-  // yourRegion填写Bucket所在地域。以华东1（杭州）为例，Region填写为oss-cn-hangzhou。
-  region: 'yourRegion',
-  authorizationV4: true,
-  // yourBucketName填写Bucket名称。
-  bucket: 'yourBucketName',
 }); */
+
+
+let client = null;
+const Credential = require("@alicloud/credentials");
+
+ console.log( 'process',process.env.ALIBABA_CLOUD_ACCESS_KEY_ID);
+// 使用RamRoleArn初始化Credentials Client。
+const credentialsConfig = new Credential.Config({
+ 
+  // 凭证类型。
+  type: "ram_role_arn",
+  // 从环境变量中获取AccessKey ID的值
+  accessKeyId: process.env.ALIBABA_CLOUD_ACCESS_KEY_ID,
+  // 从环境变量中获取AccessKey Secret的值
+  accessKeySecret: process.env.ALIBABA_CLOUD_ACCESS_KEY_SECRET,
+  // 要扮演的RAM角色ARN，示例值：acs:ram::123456789012****:role/adminrole，可以通过环境变量ALIBABA_CLOUD_ROLE_ARN设置roleArn
+  roleArn: 'acs:ram::1284423962368172:role/ramosstest',
+  // 角色会话名称，可以通过环境变量ALIBABA_CLOUD_ROLE_SESSION_NAME设置RoleSessionName
+  roleSessionName: 'RamOssTest',
+  // 设置更小的权限策略，非必填。示例值：{"Statement": [{"Action": ["*"],"Effect": "Allow","Resource": ["*"]}],"Version":"1"}
+  // policy: '<Policy>',
+  roleSessionExpiration: 3600
+});
+const initOss = async () => {
+  const credentialClient = new Credential.default(credentialsConfig);
+const credential = await credentialClient.getCredential();
+
+// 初始化OSS
+ client = new OSS({
+  accessKeyId:credential.accessKeyId,
+  accessKeySecret: credential.accessKeySecret,
+  stsToken: credential.securityToken,
+  refreshSTSTokenInterval: 0, // 由Credential控制accessKeyId、accessKeySecret和stsToken值的更新
+  refreshSTSToken: async () => {
+    const { accessKeyId, accessKeySecret, securityToken } = await credentialClient.getCredential();
+    return {
+      accessKeyId,
+      accessKeySecret,
+      stsToken: securityToken,
+    };
+  }
+});
+}
+initOss()
+
+
+
+
+
+
+
+
 
 const ossRouter = express.Router();
 
