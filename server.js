@@ -7,6 +7,7 @@ const user = require('./routes/user');
 const comment = require('./routes/comment');
 const bodyParser = require("body-parser");
 const  OSS =require("./routes/oss")
+const fs = require('fs');
  
 const JWT = require("./utils/JWT");
  
@@ -45,9 +46,9 @@ app.use((req, res, next) => {
 
 
 
-const PORT = process.env.PORT || 3000;
+// const PORT = process.env.PORT || 3000;
 
-
+const https = require('https');
 
 
 app.use('/upload', OSS);
@@ -59,7 +60,17 @@ app.use('/api', apiRoutes);
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
+const options = {
+    key: fs.readFileSync('ssl/guohanshizhou.cn.key'),
+    cert: fs.readFileSync('ssl/guohanshizhou.cn.pem')
+};
  
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// app.listen(options, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
+
+const PORT = 443; // HTTPS 默认端口
+https.createServer(options, app)
+    .listen(PORT, () => {
+        console.log(`HTTPS Server is running on https://localhost:${PORT}`);
+    });

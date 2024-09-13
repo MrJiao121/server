@@ -151,6 +151,32 @@ router.post("/login", async (req, res) => {
 router.get("/checkLogin", (req, res) => {
   // https://api.weixin.qq.com/wxa/checksession?access_token=ACCESS_TOKEN&signature=SIGNATURE&openid=OPENID&sig_method=SIG_METHOD
 });
+// 更新用户信息
+router.post("/getUserInfo", async (req, res) => {
+  try {
+   
+	let userId = req.user_id;
+	let data = await User.findById(userId);
+	
+
+	console.log(data,'ddd')
+  let {avatarUrl,following,followers,nickname   }=data;
+ 
+    res.send({
+      status: 200,
+      message: "",
+      data: {
+       avatarUrl,following,followers,nickname
+      },
+    });
+  } catch (err) {
+	console.log(err,'eee')
+	 res.send({ status: 500, message: '获取失败', data: err });
+   
+  }
+
+});
+
 
 // 更新用户信息
 router.post("/updateProfile", async (req, res) => {
@@ -190,16 +216,43 @@ router.get('/addFollow',async (req,res)=>{
 	
 	*/
 	let userA = req.user_id;
-	let {userId } = req.query;
+	let {userId,isFollowed } = req.query;
 	let data = await User.findById(userA);
+  //默认关注 可取消关注
+  isFollowed = Boolean(JSON.parse(isFollowed))!=void 0 ? JSON.parse(isFollowed):true;
+  console.log(isFollowed,'isFollowed', JSON.parse(isFollowed),Boolean(JSON.parse(isFollowed)))
 	//获取该用户是否关注过
 	// data.followers.find(v=>)
-	data.followers.push(userId);
+  if(isFollowed){
+    data && !data.followers.includes(userId) && data.followers.push(userId);
 	await data.save();
 	let dataB = await User.findById(userId);
-	dataB.following.push(userA)
+	dataB && !dataB.following.includes(userA) && dataB.following.push(userA)
 	await dataB.save();
-	 res.send({ status: 200, message: 'success', data: '' });
+
+  }else {
+
+   if(data){
+    let idx = data.followers.indexOf(userId)
+    idx > -1 && data.followers.splice(idx,1);
+	  await data.save();
+
+   }
+
+	let dataB = await User.findById(userId);
+    if(dataB){
+        let idxB =  dataB.following.indexOf(userId)
+        idxB > -1 && dataB.following.splice(idxB,1);
+	      await dataB.save();
+        console.log(data,dataB);
+
+    }
+
+  }
+	
+	 res.send({ status: 200, message: 'success', data: {
+      followers : data.followers
+   } });
 
 })
 //获取关注和被关注
@@ -213,11 +266,45 @@ router.get('/followList',async (req,res)=>{
 	let userA = req.user_id;
 	let data = await User.findById(userA);
 	let followers = data.followers;
-	let following = data.following;
-	await data.save();
+  let followersList = [];
+  let followeredList = [];
+/*   followers.forEach(async( v)=>{
+    if(v){
+      let userData = await User.findById(v);
+      followersList.push(userData);
+
+    }
+  }) */
+
+  let promisesA = followers.map(async (v) => {  
+  if (v) {  
+    let userData = await User.findById(v);  
+    return userData; // 返回查询到的用户数据  
+  }  
+  return null; // 如果 v 是无效的，返回 null 或其他默认值  
+});  
+
+  	let following = data.following;
+  // 使用 map 而不是 forEach 来创建一个 Promise 数组  
+let promises = following.map(async (v) => {  
+  if (v) {  
+    let userData = await User.findById(v);  
+    return userData; // 返回查询到的用户数据  
+  }  
+  return null; // 如果 v 是无效的，返回 null 或其他默认值  
+});   
+let follwB = await Promise.all(promises);
+let follwA = await Promise.all(promisesA);
+followeredList = follwB.filter(Boolean); 
+followersList = follwA.filter(Boolean); 
+
+
+
+
+
 	 res.send({ status: 200, message: 'success', data: {
-		followers,
-		following
+		followers: followeredList,
+		following: followersList
 
 	 } });
 

@@ -48,6 +48,8 @@ const credential = await credentialClient.getCredential();
 
 // 初始化OSS
  client = new OSS({
+  bucket: 'poems-resource',
+ region: "oss-cn-shanghai",
   accessKeyId:credential.accessKeyId,
   accessKeySecret: credential.accessKeySecret,
   stsToken: credential.securityToken,
@@ -61,8 +63,15 @@ const credential = await credentialClient.getCredential();
     };
   }
 });
+console.log(client,'osss')
+console.log(client.putBucket,'osss')
+// putBucket();
 }
+
+
 initOss()
+//创建存储空间
+// putBucket();
 
 
 
@@ -89,6 +98,7 @@ ossRouter.post('/uploadImage',upload.single('file'),async (req,res)=> {
       data: result  
     });  
 	}catch (error) {  
+    console.log(error);
     res.status(500).send({  
       message: '文件上传失败',  
       error: error.message  

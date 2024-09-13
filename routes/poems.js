@@ -50,7 +50,8 @@ router.get("/collectPoem", async (req, res) => {
 	  //检查用户是否收藏过该古诗
   let hasData = await userFavorite.find({
 	$and:[{ userId },{poemId: id}]});
-	if(hasData){
+  console.log(hasData,'hasData2');
+	if(hasData.length){
 		res.send({ status: 200, message: "诗歌已收藏", data: "" });
 		return 
 	}
@@ -84,8 +85,11 @@ router.get("/getCollectList", async (req, res) => {
 }).populate(name).limit(20);
   let favoriteList = data.map((v) => { 
 	console.log( v[name],' v[mapping[type]]')
+  let id = name == 'poemId'? v.poemId._id: v.commentId._id;
 	return {
-		id: v._id, 
+		// id: v._id, 
+    id: id,
+    replies: name == 'poemId'? [] : v.commentId.replies,
 		content: v[name]?.title||v[name]?.content
 
 	}
@@ -96,14 +100,24 @@ router.get("/getCollectList", async (req, res) => {
 
 //获取古诗详情
 router.get("/getPoemDetail", async (req, res) => {
+   let userId= req.user_id;
   console.log(req.body, "collectPoem");
   //古诗id
 
-  let poemId = req.query?.id || "66c6e3736e7b39f27362cd9a";
+    let poemId = req.query?.id || "66c6e3736e7b39f27362cd9a";
+    console.log(poemId,'poemId')
 
-  let data = await Poems.findById(poemId);
+  let data = await Poems.findById(poemId)||{};
+
+
+    let hasData = await userFavorite.find({
+	$and:[{ userId },{poemId: poemId}]});
+  console.log(hasData,'hasData');
+  let isCollect = !!hasData.length;
+  console.log(data,'daaa')
+
   let {
-    content,
+    content='',
     group,
     createdAt,
     judgementAnsList,
@@ -122,10 +136,18 @@ router.get("/getPoemDetail", async (req, res) => {
 
   console.log(data, "dddd");
 
+  /* 
+  
+  http://10.0.112.13:3000/
+  
+  */
+
+  let url = 'https://guohanshizhou.cn/'
   //将数据保存到浏览记录里
-    const response = await axios.get(`http://127.0.0.1:3000/api/addPost?userId=${req.user_id}&poemId=${poemId}`);
+    const response = await axios.get(`${url}/api/addPost?userId=${req.user_id}&poemId=${poemId}`);
 	console.log(response,'reee')
   let newData = {
+    isCollect,
     content,
     group,
     createdAt,
@@ -246,11 +268,11 @@ router.post("/getPoems", async (req, res) => {
 //获取用户的浏览记录
 router.get('/postList',async(req,res)=>{
 	let userId = req.user_id;
-	let dataA = await post.find({userId}).populate('poemId');
-	let dataB = await post.find({userId}).populate('commentId');
+	let dataA = await post.find({userId}).populate('poemId').populate('commentId').limit(10);
+	// let dataB = await post.find({userId}).populate('commentId');
 	console.log(dataA,'list1')
-	console.log(dataB,'list2');
-	dataB = dataB.reduce((pre, cur)=>{
+	// console.log(dataB,'list2');
+/* 	dataB = dataB.reduce((pre, cur)=>{
 		if(cur.commentId && cur.commentId?.content){
 			pre.push({
 				type: 'comment',
@@ -259,7 +281,7 @@ router.get('/postList',async(req,res)=>{
 			})
 		}
 		return pre;
-	},[])
+	},[]) */
 /* 	dataB = dataB.map(v=>{
 		return {
 			title: v.commentId.content,
@@ -275,6 +297,14 @@ router.get('/postList',async(req,res)=>{
 				title: cur.poemId.title,
 			id: cur.poemId._id,
 			})
+		}else if(cur.commentId && cur.commentId?.content){
+			pre.push({
+				type: 'comment',
+				content: cur.commentId.content,
+			id: cur.commentId._id,
+      like: cur.commentId.like,
+      replies: cur.commentId.replies
+			})
 		}
 		return pre;
 	},[])
@@ -286,7 +316,7 @@ router.get('/postList',async(req,res)=>{
 	}); */
 	res.send( {status: 200,
       message: "",
-      data: [...dataA,...dataB],
+      data: [...dataA],
       })
 
 
