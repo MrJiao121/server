@@ -4,6 +4,7 @@ const commentSchema = new mongoose.Schema({
 	content: String,
 	user_id: String,
 	author: String,
+	avatarUrl:  String,
 	replies:[
 		{
 			content: String,

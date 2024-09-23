@@ -43,22 +43,38 @@ router.get('/addPost',async(req,res)=>{
 router.get("/collectPoem", async (req, res) => {
   console.log(req.body, "collectPoem");
 
+  
   let userId= req.user_id;
-  let { id,commentId } = req.query; 
+  let { id,commentId,status } = req.query; 
+ status = Boolean(JSON.parse(status))!=void 0 ? JSON.parse(status):false;
+
+
   console.log(commentId)
   try{
-	  //检查用户是否收藏过该古诗
-  let hasData = await userFavorite.find({
+    if(!status){
+      //取消收藏
+      await userFavorite.deleteOne({
+    $and: [{ userId }, { poemId: id }]
+})
+	res.send({ status: 200, message: "取消收藏", data: "" });
+
+    }else {
+      	  //检查用户是否收藏过该古诗
+    let hasData = await userFavorite.find({
 	$and:[{ userId },{poemId: id}]});
   console.log(hasData,'hasData2');
 	if(hasData.length){
 		res.send({ status: 200, message: "诗歌已收藏", data: "" });
 		return 
 	}
-
-  let data = await userFavorite.create({ userId, poemId: id });
+    let data = await userFavorite.create({ userId, poemId: id });
   console.log(data, "dddd");
   res.send({ status: 200, message: "收藏成功", data: "" });
+
+    }
+
+
+
 
   }catch(err){
 	console.log(err);
@@ -72,7 +88,12 @@ router.get("/getCollectList", async (req, res) => {
   let userId = req.user_id;
   //古诗id
 
-  let { type } = req.query;
+  let { type,pageNum } = req.query;
+
+  const pageSize = 20; // 每页显示的文档数量    
+  
+const skipCount = (pageNum - 1) * pageSize; // 计算需要跳过的文档数量  
+  
   
   let mapping = {
 	poem :'poemId',
@@ -82,7 +103,7 @@ router.get("/getCollectList", async (req, res) => {
 
   let data = await userFavorite.find({ userId,
 [name]: { $ne: null }
-}).populate(name).limit(20);
+}).sort({ createdAt: -1 }).skip(skipCount).limit(pageSize).populate(name);
   let favoriteList = data.map((v) => { 
 	console.log( v[name],' v[mapping[type]]')
   let id = name == 'poemId'? v.poemId._id: v.commentId._id;
@@ -142,9 +163,14 @@ router.get("/getPoemDetail", async (req, res) => {
   
   */
 
-  let url = 'https://guohanshizhou.cn/'
+  // let url = 'https://guohanshizhou.cn/'
+  // let url = 'http://10.1.166.55:3000'
+  let url = 'http://47.116.218.142:3000'
+
   //将数据保存到浏览记录里
-    const response = await axios.get(`${url}/api/addPost?userId=${req.user_id}&poemId=${poemId}`);
+  try {
+        const response = {}
+        await axios.get(`${url}/api/addPost?userId=${req.user_id}&poemId=${poemId}`);
 	console.log(response,'reee')
   let newData = {
     isCollect,
@@ -165,6 +191,13 @@ router.get("/getPoemDetail", async (req, res) => {
 	id: _id
   };
   res.send({ status: 200, message: "", data: newData });
+
+  }catch(err){
+    console.log(err,'errrrrr')
+    res.send({ status: 500, message: "", data: err });
+
+  }
+
 });
 
 
@@ -268,7 +301,7 @@ router.post("/getPoems", async (req, res) => {
 //获取用户的浏览记录
 router.get('/postList',async(req,res)=>{
 	let userId = req.user_id;
-	let dataA = await post.find({userId}).populate('poemId').populate('commentId').limit(10);
+	let dataA = await post.find({userId}).populate('poemId').populate('commentId').sort({ createdAt: -1 }).limit(10);
 	// let dataB = await post.find({userId}).populate('commentId');
 	console.log(dataA,'list1')
 	// console.log(dataB,'list2');

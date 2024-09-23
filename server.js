@@ -1,19 +1,15 @@
 const express = require('express');
 const app = express();
 
-const apiRoutes = require('./routes/api');
-const poems = require('./routes/poems')
+const poems = require('./routes/poems-new')
 const user = require('./routes/user');
+const newUser = require('./routes/new_user')
 const comment = require('./routes/comment');
 const bodyParser = require("body-parser");
 const  OSS =require("./routes/oss")
 const fs = require('fs');
- 
+ const https = require('https');
 const JWT = require("./utils/JWT");
- 
-// const MpUploadOssHelper = require("./utils/oss/uploadOssHelper.js");
-
-
 
 
 
@@ -26,6 +22,7 @@ app.use((req, res, next) => {
   console.log(req.path)
   let whiteList = ['/api/login','/api/addPost'];
   if (whiteList.includes(req.path)) return next()
+  console.log('bool',whiteList.includes(req.path))
  
   let token = req.get('Authorization');
   if (token) {
@@ -43,20 +40,12 @@ app.use((req, res, next) => {
   
 })
  
-
-
-
-// const PORT = process.env.PORT || 3000;
-
-const https = require('https');
-
-
+// app.use('/api',newser)
 app.use('/upload', OSS);
 
 app.use('/api',comment)
 app.use('/api',user)
 app.use('/api',poems)
-app.use('/api', apiRoutes);
 app.get('/', (req, res) => {
   res.send('Hello World!');
 });
@@ -65,12 +54,13 @@ const options = {
     cert: fs.readFileSync('ssl/guohanshizhou.cn.pem')
 };
  
-// app.listen(options, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });
+const PORT = process.env.PORT || 3000;
+app.listen(PORT,'0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
-const PORT = 443; // HTTPS 默认端口
-https.createServer(options, app)
-    .listen(PORT, () => {
-        console.log(`HTTPS Server is running on https://localhost:${PORT}`);
-    });
+// const PORT = 443; // HTTPS 默认端口
+// https.createServer(options, app)
+//     .listen(PORT, () => {
+//         console.log(`HTTPS Server is running on https://localhost:${PORT}`);
+//     });

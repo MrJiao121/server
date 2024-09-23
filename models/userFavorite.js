@@ -14,8 +14,11 @@ const UserFavoriteSchema = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,  
     ref: 'comment' // 引用 Poem 模型  
   },
-  type: String
+  type: String,
+   createTime: { type: Date, default: Date.now }
 
   // 可以添加其他字段，如 timestamp  
+},{
+    timestamps: true        // 时间戳，自动添加文档的创建时间
 }); 
 module.exports = mongoose.model('userFavorite',UserFavoriteSchema);

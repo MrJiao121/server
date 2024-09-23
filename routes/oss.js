@@ -63,8 +63,8 @@ const credential = await credentialClient.getCredential();
     };
   }
 });
-console.log(client,'osss')
-console.log(client.putBucket,'osss')
+// console.log(client,'osss')
+// console.log(client.putBucket,'osss')
 // putBucket();
 }
 

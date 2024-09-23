@@ -9,7 +9,7 @@ const User = require("../models/user");
 const JWT = require("../utils/JWT");
 console.log(Item, "poems");
 
-
+console.log(User, "user...");
 const multer = require("multer");
 const OSS = require("ali-oss");
 
@@ -29,6 +29,8 @@ const OSSregion =  "oss-cn-shanghai";
   authorizationV4: true,
 //   endpoint,
 }); */
+
+
 
 
 // 使用内存存储引擎，文件数据将保存在内存中的 Buffer 对象
@@ -111,6 +113,7 @@ const fetchOrCreateUser = async (openid) => {
 // 登录接口
 router.post("/login", async (req, res) => {
   try {
+    console.log('ceshi',req.path)
     let code = req.body.code;
     let appid = "wx12121ee490eb1a7f";
     let app_secret = "315c0a8b71335720d3b1416255477981";
@@ -205,8 +208,6 @@ router.post("/updateProfile", async (req, res) => {
   }
 
 });
-
-
 //添加关注
 router.get('/addFollow',async (req,res)=>{
 	/* 
@@ -221,6 +222,7 @@ router.get('/addFollow',async (req,res)=>{
   //默认关注 可取消关注
   isFollowed = Boolean(JSON.parse(isFollowed))!=void 0 ? JSON.parse(isFollowed):true;
   console.log(isFollowed,'isFollowed', JSON.parse(isFollowed),Boolean(JSON.parse(isFollowed)))
+  console.log(data,'sdkfkfejkfekfjke',userId,userA,typeof userA)
 	//获取该用户是否关注过
 	// data.followers.find(v=>)
   if(isFollowed){
@@ -250,8 +252,9 @@ router.get('/addFollow',async (req,res)=>{
 
   }
 	
+  let followers =  data && data.followers ? data.followers: []
 	 res.send({ status: 200, message: 'success', data: {
-      followers : data.followers
+      followers :followers
    } });
 
 })
@@ -264,8 +267,10 @@ router.get('/followList',async (req,res)=>{
 	
 	*/
 	let userA = req.user_id;
-	let data = await User.findById(userA);
-	let followers = data.followers;
+	let data = await User.findById(userA)||{};
+
+  console.log('followList',data)
+	let followers = data?.followers||[];
   let followersList = [];
   let followeredList = [];
 /*   followers.forEach(async( v)=>{
@@ -284,7 +289,7 @@ router.get('/followList',async (req,res)=>{
   return null; // 如果 v 是无效的，返回 null 或其他默认值  
 });  
 
-  	let following = data.following;
+  	let following = data.following||[];
   // 使用 map 而不是 forEach 来创建一个 Promise 数组  
 let promises = following.map(async (v) => {  
   if (v) {  
